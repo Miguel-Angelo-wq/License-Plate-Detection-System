@@ -1,0 +1,10 @@
+.env
+docs/
+models/
+reports/
+notebook/
+lp_detection/
+Struct_LP_Detection/models/
+Struct_LP_Detection/Car_Detection/darknet_weights/
+Struct_LP_Detection/unconstrained_scenarios_ocr/data/vehicle-detector/yolo-voc.weights
+

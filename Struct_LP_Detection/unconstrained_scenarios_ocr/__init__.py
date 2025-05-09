@@ -1,0 +1,1 @@
+from .license_plate_ocr import ocr_from_matrix
