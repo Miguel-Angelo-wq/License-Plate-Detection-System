@@ -8,8 +8,8 @@ import numpy as np
 import ctypes as ct
 import matplotlib.pyplot as plt
 
-from . import darknet
-from .darknet import detect_image, make_image, network_width, network_height, array_to_image, load_network 
+from darknet.python import darknet
+from darknet.python.darknet import detect_image, make_image, network_width, network_height, array_to_image, load_network 
 
 from cv2 import resize, copyMakeBorder, BORDER_CONSTANT
 #"./darknet/cfg/yolov4.cfg",  # ou yolov4-custom.cfg

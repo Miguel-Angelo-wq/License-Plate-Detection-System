@@ -10,8 +10,8 @@ from glob					import glob
 from .src.label				import dknet_label_conversion
 from .src.utils 				import nms
 
-from Car_Detection import detect_from_array, detect
-from Car_Detection  import darknet as dn
+from darknet.python import darknet as dn
+from darknet.python.darknet import detect_from_array, detect
 
 
 # must receive a matrix of image and return the extracted character as a list of strings. 
