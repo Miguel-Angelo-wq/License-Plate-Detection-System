@@ -1,20 +1,10 @@
-import sys
-import os
 import time
 import cv2
-import argparse
-import matplotlib.pyplot as plt
 import setup_env
 import tensorflow as tf
 
-from utils import crop_image_with_annotations
-from utils import extract_position_vehicle
-from utils import nextest_bbox_by_iou, nextest_bbox_by_iou_darknet
-from utils import crop_image_xyxy, crop_image_xywh, deresize_boundingbox_xywh
+from utils import crop_image_xywh, deresize_boundingbox_xywh
 from utils import show_image
-from utils import extract_track_from_path
-from utils import cut_off_extension
-from utils import get_plate_annotation
 
 from report import report_results
 from report import ExperimentLogger

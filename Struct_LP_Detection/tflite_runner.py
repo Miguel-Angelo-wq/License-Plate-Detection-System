@@ -7,18 +7,17 @@ import argparse
 import cv2
 import numpy as np
 import yaml
+import tensorflow as tf
 
 try:
     from tflite_runtime.interpreter import Interpreter
 except ImportError:
-    import tensorflow as tf
-
     Interpreter = tf.lite.Interpreter
 
 
 class YOLOv11TFLite:
     """
-    A YOLOv8 object detection class using TensorFlow Lite for efficient inference.
+    A YOLOv11 object detection class using TensorFlow Lite for efficient inference.
 
     This class handles model loading, preprocessing, inference, and visualization of detection results for YOLOv8
     models converted to TensorFlow Lite format.
@@ -83,6 +82,24 @@ class YOLOv11TFLite:
         self.in_index = input_details["index"]
         self.in_scale, self.in_zero_point = input_details["quantization"]
         self.int8 = input_details["dtype"] == np.int8
+
+        #try:
+        #    # A linha abaixo é a que tenta carregar o delegado da GPU
+        #    gpu_delegate = tf.lite.experimental.GpuDelegate()
+        #    self.model = Interpreter(
+        #        model_path=model,
+        #        experimental_delegates=[gpu_delegate]
+        #    )
+        #    print("✅ Delegado da GPU carregado com sucesso. Usando GPU.")
+        #except (ValueError, NameError):
+        #    # Se falhar (ex: TensorFlow Lite sem suporte a GPU, drivers faltando), use a CPU
+        #    print("⚠️ Delegado da GPU não encontrado. Usando CPU.")
+        #    self.model = Interpreter(model_path=model)
+
+        #self.model.allocate_tensors()
+
+
+
 
         # Get output details
         output_details = self.model.get_output_details()[0]
