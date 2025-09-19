@@ -4,6 +4,7 @@ import keras
 import cv2
 import traceback
 from rich.traceback import install
+from pathlib import Path
 
 from glob 						import glob
 from os.path 					import splitext, basename
@@ -11,7 +12,12 @@ from .utils 	    		import im2single
 from .keras_utils 			import load_model, detect_lp
 from .label 				import Shape, writeShapes
 
+import numpy as np
+
 install()
+
+
+BASE_DIR = Path(__file__).resolve().parent
 
 
 def adjust_pts(pts,lroi):
@@ -24,8 +30,8 @@ def get_license_plate(img_array):
     try:
         
         lp_threshold = .5
+        wpod_net_path  = BASE_DIR/"../../data/lp-detector/wpod-net_update1.json"
 
-        wpod_net_path = "/home/dialog/Documentos/Struct_LP_Detection/Struct_LP_Detection/unconstrained_scenarios_plate_det/cfg/wpod-net_update1.json"
         wpod_net = load_model(wpod_net_path)
 
 
@@ -47,7 +53,7 @@ def get_license_plate(img_array):
 
             s = Shape(Llp[0].pts)
             print("IM_SHAPE:", Ilp.shape)
-
+            Ilp = Ilp.astype(np.uint8)
             cv2.imwrite('lp.png',Ilp)
             writeShapes('lp.txt',[s])
             return Ilp

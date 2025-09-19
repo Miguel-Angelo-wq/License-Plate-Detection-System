@@ -55,6 +55,47 @@ def crop_image_xyxy(image, vehicle_position):
 
     return crop_img
 
+def deresize_boundingbox_xywh(image, bouding_box, size_ref = (640, 640)):
+
+    h_orig, w_orig = image.shape[:2]
+
+    # 2. Dimensões de referência onde a bbox foi calculada
+    h_ref, w_ref = size_ref
+
+    # 3. Calcular os fatores de escala para largura e altura
+    escala_w = w_orig / w_ref
+    escala_h = h_orig / h_ref
+
+    # 4. Desempacotar a bounding box da referência 640x640
+    x_ref, y_ref, w_ref, h_ref = bouding_box
+
+    # 5. Converter as coordenadas da bbox para a escala da imagem original
+    x_orig = int(x_ref * escala_w)
+    y_orig = int(y_ref * escala_h)
+    w_orig = int(w_ref * escala_w)
+    h_orig = int(h_ref * escala_h)
+    return [x_orig, y_orig, w_orig, h_orig]
+
+def crop_image_xywh(image, bouding_box, size_ref = (640, 640)):
+    """
+    Recorta uma região de uma imagem original usando uma bounding box
+    que foi calculada em uma versão redimensionada da imagem (640x640).
+
+    Args:
+        imagem_original (np.array): A imagem original em alta resolução.
+        bbox_640 (list): Uma lista Python no formato [x, y, w, h] com as
+                         coordenadas da bounding box na escala 640x640.
+
+    Returns:
+        np.array: A imagem recortada, ou None se ocorrer um erro.
+    """
+
+    x, y, w, h= bouding_box
+
+    croped_img = image[y: y + h, x: x + w]
+
+    return croped_img
+
 def crop_image_with_annotations_from_path(image_path:str, vehicle_position:list):
     image = Image.open(image_path)
     x1, y1, w, h = vehicle_position

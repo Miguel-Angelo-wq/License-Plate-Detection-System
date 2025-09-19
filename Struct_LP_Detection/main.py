@@ -10,7 +10,7 @@ import tensorflow as tf
 from utils import crop_image_with_annotations
 from utils import extract_position_vehicle
 from utils import nextest_bbox_by_iou, nextest_bbox_by_iou_darknet
-from utils import crop_image_xyxy
+from utils import crop_image_xyxy, crop_image_xywh, deresize_boundingbox_xywh
 from utils import show_image
 from utils import extract_track_from_path
 from utils import cut_off_extension
@@ -25,8 +25,12 @@ from unconstrained_scenarios_plate_det import get_license_plate
 from tflite_runner import YOLOv11TFLite
 
 from config import FPS, VIDEO
+#REMOVER DEPOIS CHAMADAS DE RICH
 from rich.console import Console
+from rich.traceback import install
+
 console = Console()
+install()
 
 detector = YOLOv11TFLite(
     model =  "./models/yolo11n_saved_model/yolo11n_float16.tflite", 
@@ -35,79 +39,82 @@ detector = YOLOv11TFLite(
     metadata = "./models/yolo11n_saved_model/metadata.yaml"
 )
 
-def main(img, annotatios_path: str, modelname: str, thresh: float, output_path: str):
-    
-    #track = extract_track_from_path(image)
-    #model = cut_off_extension(modelname)
-    #logger = ExperimentLogger(experiment_name=f"track_{track}_model_{model}", model = model)
 
-    #if isinstance(image, str):
-    #    image_matrix = cv2.imread(image)
-    #    #show_image(image_matrix, "Imagem Original")
-    #elif image is None: 
-    #    raise TypeError
-    #else:
-    #    image_matrix = image
-    ##logger.save_chart(image_matrix, "original_image.png")
+def draw_in_image(imagem_a, bounding_box, imagem_b, texto):
+    """
+    Desenha uma bounding box, uma sub-imagem e um texto na imagem principal.
+
+    Args:
+        imagem_a (np.ndarray): A imagem principal carregada com OpenCV (em formato BGR).
+        bounding_box (list): Uma lista no formato [x, y, w, h], onde (x, y) é o canto
+                             superior esquerdo e (w, h) são a largura e a altura.
+        imagem_b (np.ndarray): A sub-imagem a ser desenhada no canto inferior esquerdo.
+        texto (str): O conteúdo da string a ser escrita acima da bounding box.
+
+    Returns:
+        np.ndarray: A imagem 'A' com as anotações desenhadas.
+    """
+    imagem_anotada = imagem_a.copy()
+
+    x, y, w, h = bounding_box
+    cor_retangulo = (0, 255, 0)  # Verde em BGR
+    espessura_linha = 2
+    cv2.rectangle(imagem_anotada, (x, y), (x + w, y + h), cor_retangulo, espessura_linha)
+
+    altura_b, largura_b, _ = imagem_b.shape
+    altura_a, _, _ = imagem_anotada.shape
+    
+    roi = imagem_anotada[altura_a - altura_b:altura_a, 0:largura_b]
+    
+    roi[:] = imagem_b
+
+    posicao_texto = (x, y - 10)  # Posição um pouco acima da caixa
+    fonte = cv2.FONT_HERSHEY_SIMPLEX
+    escala_fonte = 0.7
+    cor_texto = (0, 255, 0)  # Verde em BGR
+    espessura_texto = 2
+    cv2.putText(imagem_anotada, texto, posicao_texto, fonte, escala_fonte, cor_texto, espessura_texto)
+
+    return imagem_anotada
+
+def main(img):
+    
 
     start_time = time.time()
-    #vehicles = detect_vehicles_yolov4(image, modelname=modelname)
-    #vehicle_position = extract_position_vehicle(annotatios_path) #ground truth
-    #car_bounding_box = nextest_bbox_by_iou_darknet(vehicles, vehicle_position)
 
     car_bounding_box = detector.detect(img) #Fazer retornar bounding box do carro
-    croped_vehicle = crop_image_xyxy(img, car_bounding_box)
-    show_image(croped_vehicle, "Veiculo Detectado")
-    #logger.save_chart(croped_vehicle, "croped_vehicle.png")
+    deresized_bounding_box = deresize_boundingbox_xywh(img, car_bounding_box)
+    croped_vehicle = crop_image_xywh(img, deresized_bounding_box)
+    #show_image(croped_vehicle, "Veiculo Detectado")
 
-
-    #plate = detect_plate(croped_vehicle)
     plate = get_license_plate(croped_vehicle)
     if plate is not None: 
         print("SHAPE DA IMAGEM DA PLACA", plate.shape)
-        show_image(plate, "Placa Detectada")
-        #logger.save_chart(plate, "plate.png")
+        #show_image(plate, "Placa Detectada")
 
         characters = ocr_from_matrix(plate)
+        print("OUTPUT DE CARACTERES:")
+        print(characters)
     else: characters = ""
 
     end_time = time.time()
     console.print("Time: ", end_time - start_time, style = "magenta")
     console.print("Characters:", characters, style = "magenta")
 
-    #logger.save_config({
-    #        "image_path": image,
-    #        "annotations_path": annotatios_path,
-    #        "model_name": modelname,
-    #        "threshold": thresh,
-    #    })
+    img = draw_in_image(img, deresized_bounding_box, plate, characters)
 
-    #original_characters = get_plate_annotation(annotatios_path)
-    #logger.save_metrics({
-    #    "detected_characters": characters, 
-    #    "original_characters": original_characters,
-    #    "detected_characters_matched": characters == original_characters,
-    #    "time_(s)": round( end_time - start_time, 3 )
-    #    })
+    return img
 
-
-
-    #report_results(characters, end_time - start_time, image, modelname, annotatios_path, output_path)
-    return characters
-
-# função main:       
-# imagem -> main() -> ?? 
-# main deve desenhar no frame as boungind boxes e os caracteres.
-#
-#
 def main_loop():
 
     cap = cv2.VideoCapture(VIDEO)
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
+            cap = cv2.VideoCapture(VIDEO)
             continue
-        #characters = main(image=frame)
+
+        frame = main(frame)
 
         cv2.imshow("MAIN", frame)
 
