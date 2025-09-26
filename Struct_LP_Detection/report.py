@@ -4,7 +4,6 @@ import cv2
 import csv
 import json
 import yaml
-import setup_env
 from pathlib import Path
 
 from datetime import datetime

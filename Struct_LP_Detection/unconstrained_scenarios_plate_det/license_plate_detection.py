@@ -67,7 +67,6 @@ if __name__ == '__main__':
     import sys
     import matplotlib.pyplot as plt
     sys.path.append("../")
-    import setup_env
 
     #impath = "/home/dialog/Documentos/Vehicular_Plates_Detection/keras_approach/data/processed/track0143/track0143[01].png"
     impath = "/home/dialog/Documentos/Vehicular_Plates_Detection/keras_approach/data/processed/track0135/track0135[05].png"

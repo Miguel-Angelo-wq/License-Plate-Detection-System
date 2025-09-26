@@ -1,6 +1,5 @@
 import time
 import cv2
-import setup_env
 import tensorflow as tf
 
 from utils import crop_image_xywh, deresize_boundingbox_xywh
@@ -9,7 +8,6 @@ from utils import show_image
 from report import report_results
 from report import ExperimentLogger
 
-#from Car_Detection import detect_vehicles_yolov11
 from unconstrained_scenarios_ocr import ocr_from_matrix
 from unconstrained_scenarios_plate_det import get_license_plate
 from tflite_runner import YOLOv11TFLite
