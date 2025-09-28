@@ -1,21 +1,13 @@
 import sys
-import os
-import keras
 import cv2
 import traceback
-from rich.traceback import install
 from pathlib import Path
 
-from glob 						import glob
-from os.path 					import splitext, basename
-from .utils 	    		import im2single
+from .utils 	    		import im2single, load_tflite_model
 from .keras_utils 			import load_model, detect_lp
 from .label 				import Shape, writeShapes
 
 import numpy as np
-
-install()
-
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -30,9 +22,12 @@ def get_license_plate(img_array):
     try:
         
         lp_threshold = .5
-        wpod_net_path  = BASE_DIR/"../../data/lp-detector/wpod-net_update1.json"
+        wpod_net_path  = BASE_DIR/"cfg/wpod-net_update1.json"
+        #wpod_net_path  = BASE_DIR/"cfg/wpod_net.tflite"
 
         wpod_net = load_model(wpod_net_path)
+        wpod_net_tflite = load_tflite_model( str( BASE_DIR/"cfg/wpod_net.tflite" ) )
+        print("CONSEGUI CARREGAR O MODELO TFLITE.")
 
 
         print ('Searching for license plates using WPOD-NET')

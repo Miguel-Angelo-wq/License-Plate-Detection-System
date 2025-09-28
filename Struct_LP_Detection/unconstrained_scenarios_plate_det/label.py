@@ -1,8 +1,5 @@
-
 import numpy as np
-
 from os.path import isfile
-
 
 class Label:
 

@@ -7,6 +7,7 @@ from os.path import splitext
 from .label import Label
 from .utils import getWH, nms
 from .projection_utils import getRectPts, find_T_matrix
+from keras.models import model_from_json
 
 
 class DLabel (Label):
@@ -26,7 +27,6 @@ def save_model(model,path,verbose=0):
 	if verbose: print(  'Saved to %s' % path )
 
 def load_model(path,custom_objects={},verbose=0):
-	from keras.models import model_from_json
 
 	path = splitext(path)[0]
 	with open('%s.json' % path,'r') as json_file:
@@ -96,22 +96,25 @@ def reconstruct(Iorig,I,Y,out_size,threshold=.9):
 
 def detect_lp(model,I,max_dim,net_step,out_size,threshold):
 
-	min_dim_img = min(I.shape[:2])
-	factor 		= float(max_dim)/min_dim_img
+    min_dim_img = min(I.shape[:2])
+    factor 		= float(max_dim)/min_dim_img
 
-	w,h = (np.array(I.shape[1::-1],dtype=float)*factor).astype(int).tolist()
-	w += (w%net_step!=0)*(net_step - w%net_step)
-	h += (h%net_step!=0)*(net_step - h%net_step)
-	Iresized = cv2.resize(I,(w,h))
+    w,h = (np.array(I.shape[1::-1],dtype=float)*factor).astype(int).tolist()
+    w += (w%net_step!=0)*(net_step - w%net_step)
+    h += (h%net_step!=0)*(net_step - h%net_step)
+    Iresized = cv2.resize(I,(w,h))
 
-	T = Iresized.copy()
-	T = T.reshape((1,T.shape[0],T.shape[1],T.shape[2]))
+    T = Iresized.copy()
+    T = T.reshape((1,T.shape[0],T.shape[1],T.shape[2]))
+    print("SHAPE DO TENSOR DO WPODNET")
+    print(T.shape)
+    start 	= time.time()
 
-	start 	= time.time()
-	Yr 		= model.predict(T)
-	Yr 		= np.squeeze(Yr)
-	elapsed = time.time() - start
+    Yr 		= model.predict(T) #linha a ser substituída
 
-	L,TLps = reconstruct(I,Iresized,Yr,out_size,threshold)
+    Yr 		= np.squeeze(Yr)
+    elapsed = time.time() - start
 
-	return L,TLps,elapsed
+    L,TLps = reconstruct(I,Iresized,Yr,out_size,threshold)
+
+    return L,TLps,elapsed

@@ -1,7 +1,5 @@
 import numpy as np
-
 from math import sin, cos
-
 
 def find_T_matrix(pts,t_pts):
 	A = np.zeros((8,9))
@@ -15,7 +13,6 @@ def find_T_matrix(pts,t_pts):
 		A[i*2+1,  :3] =  xil[2]*xi
 		A[i*2+1, 6: ] = -xil[0]*xi
 
-	
 	[U,S,V] = np.linalg.svd(A)
 	H = V[-1,:].reshape((3,3))
 

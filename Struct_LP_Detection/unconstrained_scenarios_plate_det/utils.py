@@ -1,10 +1,29 @@
-
+import tflite_runtime.interpreter as tflite
 import numpy as np
 import cv2
 import sys
 
-
 from glob import glob
+
+def load_tflite_model(model_path = "wpod_net_converted.tflite"):
+
+    try:
+        interpreter = tflite.Interpreter(model_path=model_path)
+        print("✅ Modelo carregado na memória.")
+
+        interpreter.allocate_tensors()
+        print("✅ Memória (tensores) alocada com sucesso.")
+
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+        print("\n🔎 Detalhes da Entrada do Modelo:", input_details)
+        print("🔎 Detalhes da Saída do Modelo:", output_details)
+        
+        print("\nO modelo está pronto para ser usado!")
+        return interpreter
+
+    except Exception as e:
+        print(f"❌ Ocorreu um erro ao carregar o modelo: {e}")
 
 
 def im2single(I):
@@ -122,3 +141,10 @@ def show(I,wname='Display'):
 		sys.exit()
 	else:
 		return key
+
+
+
+
+if __name__ == "__main__":
+    print( load_tflite_model("./cfg/wpod_net.tflite"))
+
