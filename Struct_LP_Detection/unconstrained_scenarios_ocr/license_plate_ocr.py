@@ -1,7 +1,3 @@
-import sys
-import cv2
-import os
-
 from .src.label				import dknet_label_conversion
 from .src.utils 			import nms
 
@@ -9,38 +5,26 @@ from darknet.python import darknet as dn
 from darknet.python.darknet import detect_from_array, array_to_image
 from pathlib import Path
 
-# must receive a matrix of image and return the extracted character as a list of strings. 
 SCRIPT_DIR = Path(__file__).parent
+ocr_weights = SCRIPT_DIR / 'data' / 'ocr' / 'ocr-net.weights'
+ocr_netcfg  = SCRIPT_DIR / 'data' / 'ocr' / 'ocr-net.cfg'
+ocr_dataset = SCRIPT_DIR / 'data' / 'ocr' / 'ocr-net.data'
+
+print("ocr_weights ", ocr_weights)
+print("ocr_netcfg ", type( ocr_netcfg ))
+print("ocr_dataset ", ocr_dataset)
+
+ocr_net  = dn.load_net(str( ocr_netcfg ).encode('utf-8'), str( ocr_weights ).encode('utf-8'), 0)
+ocr_meta = dn.load_meta(str( ocr_dataset ).encode('utf-8'))
 
 def ocr_from_matrix(image, ocr_threshold = .4) -> str:
-    print('Performing OCR...')
-    print('These are the path to reach the network configuration')
-
-    ocr_weights = SCRIPT_DIR / 'data' / 'ocr' / 'ocr-net.weights'
-    ocr_netcfg  = SCRIPT_DIR / 'data' / 'ocr' / 'ocr-net.cfg'
-    ocr_dataset = SCRIPT_DIR / 'data' / 'ocr' / 'ocr-net.data'
-
-    print("ocr_weights ", ocr_weights)
-    print("ocr_netcfg ", type( ocr_netcfg ))
-    print("ocr_dataset ", ocr_dataset)
-
-    ocr_net  = dn.load_net(str( ocr_netcfg ).encode('utf-8'), str( ocr_weights ).encode('utf-8'), 0)
-    print("consegui carregar o ocr-net do lado do python")
-    ocr_meta = dn.load_meta(str( ocr_dataset ).encode('utf-8'))
-
-    print ('\tScanning image')
-
-    #bname = basename(splitext(image)[0]) # remove file extension
-
     detected_license_plates = ""
 
     print("Imagem recebida para OCR:", type(image), image.shape)
     print("ocr_net:", ocr_net)
     print("ocr_meta:", ocr_meta)
 	
-
     darknet_image = array_to_image(image)
-    #R,(width,height) = detect_from_array(ocr_net, ocr_meta, darknet_image  ,thresh=ocr_threshold, nms=None)
     R = detect_from_array(ocr_net, ocr_meta, darknet_image  ,thresh=ocr_threshold, nms=None)
 
     if len(R):
@@ -50,9 +34,6 @@ def ocr_from_matrix(image, ocr_threshold = .4) -> str:
 
         L.sort(key=lambda x: x.tl()[0])
         lp_str = ''.join([chr(l.cl()) for l in L])
-
-        """ with open('%s/%s_str.txt' % (output_dir,bname),'w') as f:
-            f.write(lp_str + '\n') """
 
         print('\t\tLP: %s' % lp_str)
         detected_license_plates += lp_str

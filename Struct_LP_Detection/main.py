@@ -3,16 +3,14 @@ import cv2
 import tensorflow as tf
 
 from utils import crop_image_xywh, deresize_boundingbox_xywh
-from utils import show_image
-
-from report import report_results
-from report import ExperimentLogger
 
 from unconstrained_scenarios_ocr import ocr_from_matrix
 from unconstrained_scenarios_plate_det import get_license_plate
 from tflite_runner import YOLOv11TFLite
 
-from config import FPS, VIDEO
+from draw import draw_in_image
+from config import ( FPS, VIDEO, OCR_THRESHOLD, LP_THRESHOLD )
+
 #REMOVER DEPOIS CHAMADAS DE RICH
 from rich.console import Console
 from rich.traceback import install
@@ -28,43 +26,6 @@ detector = YOLOv11TFLite(
 )
 
 
-def draw_in_image(imagem_a, bounding_box, imagem_b, texto):
-    """
-    Desenha uma bounding box, uma sub-imagem e um texto na imagem principal.
-
-    Args:
-        imagem_a (np.ndarray): A imagem principal carregada com OpenCV (em formato BGR).
-        bounding_box (list): Uma lista no formato [x, y, w, h], onde (x, y) é o canto
-                             superior esquerdo e (w, h) são a largura e a altura.
-        imagem_b (np.ndarray): A sub-imagem a ser desenhada no canto inferior esquerdo.
-        texto (str): O conteúdo da string a ser escrita acima da bounding box.
-
-    Returns:
-        np.ndarray: A imagem 'A' com as anotações desenhadas.
-    """
-    imagem_anotada = imagem_a.copy()
-
-    x, y, w, h = bounding_box
-    cor_retangulo = (0, 255, 0)  # Verde em BGR
-    espessura_linha = 2
-    cv2.rectangle(imagem_anotada, (x, y), (x + w, y + h), cor_retangulo, espessura_linha)
-
-    altura_b, largura_b, _ = imagem_b.shape
-    altura_a, _, _ = imagem_anotada.shape
-    
-    roi = imagem_anotada[altura_a - altura_b:altura_a, 0:largura_b]
-    
-    roi[:] = imagem_b
-
-    posicao_texto = (x, y - 10)  # Posição um pouco acima da caixa
-    fonte = cv2.FONT_HERSHEY_SIMPLEX
-    escala_fonte = 0.7
-    cor_texto = (0, 255, 0)  # Verde em BGR
-    espessura_texto = 2
-    cv2.putText(imagem_anotada, texto, posicao_texto, fonte, escala_fonte, cor_texto, espessura_texto)
-
-    return imagem_anotada
-
 def main(img):
     
 
@@ -75,12 +36,13 @@ def main(img):
     croped_vehicle = crop_image_xywh(img, deresized_bounding_box)
     #show_image(croped_vehicle, "Veiculo Detectado")
 
-    plate = get_license_plate(croped_vehicle)
+    plate = get_license_plate(croped_vehicle, lp_threshold=LP_THRESHOLD)
+    print("Plate is None:", plate is None)
     if plate is not None: 
         print("SHAPE DA IMAGEM DA PLACA", plate.shape)
         #show_image(plate, "Placa Detectada")
 
-        characters = ocr_from_matrix(plate)
+        characters = ocr_from_matrix(plate, ocr_threshold=OCR_THRESHOLD)
         print("OUTPUT DE CARACTERES:")
         print(characters)
     else: characters = ""

@@ -3,57 +3,40 @@ import cv2
 import traceback
 from pathlib import Path
 
-from .utils 	    		import im2single, load_tflite_model
-from .keras_utils 			import load_model, detect_lp
+from .utils 	    		import load_tflite_model
+from .keras_utils 			import detect_lp
 from .label 				import Shape, writeShapes
 
-import numpy as np
-
 BASE_DIR = Path(__file__).resolve().parent
-
 
 def adjust_pts(pts,lroi):
 	return pts*lroi.wh().reshape((2,1)) + lroi.tl().reshape((2,1))
 
-
+wpod_net_path  = str( BASE_DIR/"cfg/wpod_net.tflite" )
+wpod_net_tflite = load_tflite_model( wpod_net_path   )
 	
-def get_license_plate(img_array):
-
+def get_license_plate(img_array, lp_threshold=.4):
     try:
-        
-        lp_threshold = .5
-        wpod_net_path  = BASE_DIR/"cfg/wpod-net_update1.json"
-        #wpod_net_path  = BASE_DIR/"cfg/wpod_net.tflite"
 
-        wpod_net = load_model(wpod_net_path)
-        wpod_net_tflite = load_tflite_model( str( BASE_DIR/"cfg/wpod_net.tflite" ) )
-        print("CONSEGUI CARREGAR O MODELO TFLITE.")
-
-
-        print ('Searching for license plates using WPOD-NET')
-
-
-        ratio = float(max(img_array.shape[:2]))/min(img_array.shape[:2])
-        side  = int(ratio*288.)
-        bound_dim = min(side + (side%(2**4)),608)
-        print ("\t\tBound dim: %d, ratio: %f" % (bound_dim,ratio))
-
-        Llp,LlpImgs,_ = detect_lp(wpod_net,im2single(img_array),bound_dim,2**4,(240,80),lp_threshold)
+        Llp, LlpImgs, _ = detect_lp(
+            interpreter=wpod_net_tflite,
+            I=img_array,  
+            out_size=(240, 80),
+            threshold=lp_threshold
+        )
 
         if len(LlpImgs):
             Ilp = LlpImgs[0]
-            Ilp = cv2.cvtColor(Ilp, cv2.COLOR_BGR2GRAY)
-            Ilp = cv2.cvtColor(Ilp, cv2.COLOR_GRAY2BGR)
-            Ilp = Ilp*255.
-
             s = Shape(Llp[0].pts)
             print("IM_SHAPE:", Ilp.shape)
-            Ilp = Ilp.astype(np.uint8)
-            cv2.imwrite('lp.png',Ilp)
-            writeShapes('lp.txt',[s])
+            cv2.imwrite('lp.png', Ilp)
+            writeShapes('lp.txt', [s])
             return Ilp
+        else:
+            print("Nenhuma placa encontrada.")
+            return None 
 
-    except:
+    except Exception as e:
         traceback.print_exc()
         sys.exit(1)
 
