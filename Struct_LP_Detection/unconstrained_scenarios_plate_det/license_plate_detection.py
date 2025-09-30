@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent
 def adjust_pts(pts,lroi):
 	return pts*lroi.wh().reshape((2,1)) + lroi.tl().reshape((2,1))
 
-wpod_net_path  = str( BASE_DIR/"cfg/wpod_net.tflite" )
+wpod_net_path  = str( BASE_DIR/'../models/wpodnet/wpod_net.tflite')
 wpod_net_tflite = load_tflite_model( wpod_net_path   )
 	
 def get_license_plate(img_array, lp_threshold=.4):

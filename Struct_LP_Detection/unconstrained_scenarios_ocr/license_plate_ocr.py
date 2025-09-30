@@ -4,11 +4,12 @@ from .src.utils 			import nms
 from darknet.python import darknet as dn
 from darknet.python.darknet import detect_from_array, array_to_image
 from pathlib import Path
+"../models/ocr/"
 
 SCRIPT_DIR = Path(__file__).parent
-ocr_weights = SCRIPT_DIR / 'data' / 'ocr' / 'ocr-net.weights'
-ocr_netcfg  = SCRIPT_DIR / 'data' / 'ocr' / 'ocr-net.cfg'
-ocr_dataset = SCRIPT_DIR / 'data' / 'ocr' / 'ocr-net.data'
+ocr_weights = SCRIPT_DIR / '../models/' / 'ocr' / 'ocr-net.weights'
+ocr_netcfg  = SCRIPT_DIR / '../models/' / 'ocr' / 'ocr-net.cfg'
+ocr_dataset = SCRIPT_DIR / '../models/' / 'ocr' / 'ocr-net.data'
 
 print("ocr_weights ", ocr_weights)
 print("ocr_netcfg ", type( ocr_netcfg ))
